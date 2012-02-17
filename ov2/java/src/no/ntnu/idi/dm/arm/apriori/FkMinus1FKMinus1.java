@@ -12,6 +12,16 @@ public class FkMinus1FKMinus1<V> extends BaseApriori<V> {
 			Double minConf) {
 		super(transactions, minSup, minConf);
 	}
+	
+	private double getSupport(ItemSet<V> set) {
+		int occurrence = 0;
+		for (ItemSet<V> tranSet : this.transactions) {
+			if (tranSet.intersection(set).size() == set.size()) {
+				occurrence++;
+			}
+		}
+		return (double) occurrence / this.transactions.size();
+	}
 
 	@Override
 	public List<ItemSet<V>> aprioriGen(
@@ -21,7 +31,24 @@ public class FkMinus1FKMinus1<V> extends BaseApriori<V> {
 		int allGeneratedCandidatesCounter = 0;
 		Set<ItemSet<V>> frequentCandidateSet = new HashSet<ItemSet<V>>();
 
-		// TODO
+		for (int i = 0; i < frequentCandidatesKMinus1.size(); i++) {
+			ItemSet<V> set1 = frequentCandidatesKMinus1.get(i);
+			for (int j = 0; j < frequentCandidatesKMinus1.size(); j++) {
+				ItemSet<V> set2 = frequentCandidatesKMinus1.get(j);
+				ItemSet<V> diff = set2.difference(set1);
+				
+				for (V v : diff.getItems()) {
+					ItemSet<V> combo = set1.union(v);
+					if (combo.size() != set1.size() + 1) {
+						continue;
+					}
+					
+					frequentCandidateSet.add(combo);
+					getAndCacheSupportForItemset(combo);
+					allGeneratedCandidatesCounter++;
+				}
+			}
+		}
 
 		return new LinkedList<ItemSet<V>>(frequentCandidateSet);
 	}

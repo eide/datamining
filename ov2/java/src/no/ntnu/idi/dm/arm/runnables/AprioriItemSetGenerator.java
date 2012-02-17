@@ -71,8 +71,8 @@ public class AprioriItemSetGenerator {
 
 		AbstractApriori<String> apriori;
 
-		apriori = new BruteForceApriori<String>(transactions, minSup, minConf);
-//		apriori = new FKMinus1F1Apriori<String>(transactions, minSup, minConf);
+//		apriori = new BruteForceApriori<String>(transactions, minSup, minConf);
+		apriori = new FKMinus1F1Apriori<String>(transactions, minSup, minConf);
 //		apriori = new FkMinus1FKMinus1<String>(transactions, minSup, minConf);
 
 		apriori.apriori();

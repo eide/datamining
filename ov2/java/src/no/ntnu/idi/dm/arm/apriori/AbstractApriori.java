@@ -133,11 +133,42 @@ public abstract class AbstractApriori<V> {
 	abstract public void apriori();
 
 	// we deal with actual association rules from here on
+	
+	private List<ItemSet<V>> combinator(List<ItemSet<V>> setMinusK) {
+		Set<ItemSet<V>> combos = new HashSet<ItemSet<V>>();
+		for (int i = 0; i < setMinusK.size(); i++) {
+			ItemSet<V> set1 = setMinusK.get(i);
+			for (int j = 0; j < setMinusK.size(); j++) {
+				ItemSet<V> set2 = setMinusK.get(j);
+				ItemSet<V> diff = set2.difference(set1);
+				
+				for (V v : diff.getItems()) {
+					ItemSet<V> combo = set1.union(v);
+					if (combo.size() > set1.size()) {
+						combos.add(combo);
+					}
+				}
+			}
+		}
+		return new LinkedList<ItemSet<V>>(combos);
+	}
 
 	public void apGenRules(ItemSet<V> frequentItemSet,
 			List<ItemSet<V>> H_m, double minConf) {
-
-		//TODO
+		if (H_m.size() > 0 && frequentItemSet.size() > H_m.get(0).size()) {
+			List<ItemSet<V>> nextSets = new LinkedList<ItemSet<V>>();
+			List<ItemSet<V>> H_m1 = combinator(H_m);
+			for (ItemSet<V> h_m1 : H_m1) {
+				AssociationRule<V> rule = createAssociationRule(
+						h_m1, frequentItemSet);
+				if (rule.getItemSetA().size() > 0 && rule.getConfidence() >= minConf && rule.getSupport() >= minSup) {
+					rules.add(rule);
+					nextSets.add(h_m1);
+					System.out.println(rule);
+				}
+			}
+			apGenRules(frequentItemSet, nextSets, minConf);
+		}
 	}
 
 	/**

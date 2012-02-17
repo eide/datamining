@@ -42,23 +42,11 @@ public class BruteForceApriori<V> extends BaseApriori<V> {
 		return new LinkedList<ItemSet<V>>(combos);
 	}
 	
-	private double supportForSet(ItemSet<V> set) {
-		int occurences = 0;
-		int setSize = set.size();
-		
-		for (ItemSet<V> tranSet : this.transactions) {
-			if(tranSet.intersection(set).size() == setSize) {
-				occurences++;
-			}
-		}
-		
-		return (double) occurences / this.transactions.size();
-	}
-	
-	private List<ItemSet<V>> removeInfrequent(List<ItemSet<V>> sets, double minSup) {
+	private List<ItemSet<V>> removeInfrequent(List<ItemSet<V>> sets) {
 		List<ItemSet<V>> frequent = new LinkedList<ItemSet<V>>();
 		for (ItemSet<V> set : sets) {
-			if (supportForSet(set) >= minSup) {
+			double support = getAndCacheSupportForItemset(set);
+			if (support >= minSup) {
 				frequent.add(set);
 			}
 		}
@@ -67,21 +55,23 @@ public class BruteForceApriori<V> extends BaseApriori<V> {
 
 	@Override
 	public void apriori() {
-		List<ItemSet<V>> allFrequentSets = new LinkedList<ItemSet<V>>();
 		List<ItemSet<V>> singles = getSingles(this.transactions);
 		
 		List<ItemSet<V>> currentSets = singles;
 		for (int i = 1; currentSets.size() > 0; i++) {
-			List<ItemSet<V>> frequentSets = removeInfrequent(currentSets, minSup);
-			allFrequentSets.addAll(frequentSets);
+			List<ItemSet<V>> frequentSets = removeInfrequent(currentSets);
+			frequentItemSets.put(i, frequentSets);
 			
-			System.out.printf("Level %d: Found %d frequent sets of %d.\n", i, frequentSets.size(), currentSets.size());
-			System.out.println("\t" + frequentSets);
+			System.out.println("Level " + i);
+			System.out.println("\tGenerated " + currentSets.size()
+					+ " candidates.");
+			System.out.println("\t\t" + currentSets);
+			System.out.println("\tKept " + frequentSets.size()
+					+ " frequent itemsets");
+			System.out.println("\t\t" + frequentSets);
 			
-			currentSets = genCombos(frequentSets);
+			currentSets = genCombos(currentSets);
 		}
-		
-		System.out.printf("Found %d frequent sets.\n", allFrequentSets.size());
 	}
 
 }
